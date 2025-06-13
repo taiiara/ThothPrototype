@@ -1,0 +1,122 @@
+{
+  "Frutas": [
+    "banana", "maçã", "uva", "pêra", "melancia", "morango", "abacaxi", "mamão", "laranja", "tangerina",
+    "kiwi", "ameixa", "figo", "caju", "graviola", "jabuticaba", "pitanga", "acerola", "lichia", "carambola"
+  ],
+  "Animais": [
+    "cachorro", "gato", "cavalo", "vaca", "porco", "leão", "tigre", "elefante", "girafa", "jacaré",
+    "tartaruga", "macaco", "camelo", "antílope", "lobo", "onça", "coelho", "arara", "urso", "cavalo-marinho"
+  ],
+  "Cores": [
+    "vermelho", "azul", "amarelo", "verde", "preto", "branco", "laranja", "roxo", "rosa", "cinza",
+    "marrom", "bege", "dourado", "prateado", "lilás", "turquesa", "magenta", "índigo", "bordô", "lavanda"
+  ],
+  "Países": [
+    "brasil", "argentina", "canadá", "méxico", "alemanha", "frança", "itália", "espanha", "portugal", "austrália",
+    "japão", "china", "índia", "egito", "rússia", "grécia", "coreia", "noruega", "suécia", "marrocos"
+  ],
+  "Profissões": [
+    "médico", "engenheiro", "professor", "advogado", "enfermeiro", "psicólogo", "dentista", "policial", "bombeiro", "arquiteto",
+    "mecânico", "motorista", "garçom", "cabeleireiro", "ator", "cantor", "cozinheiro", "eletricista", "programador", "cientista"
+  ],
+  "Partes do corpo": [
+    "cabeça", "braço", "perna", "pé", "mão", "olho", "ouvido", "nariz", "boca", "dente",
+    "língua", "joelho", "cotovelo", "tornozelo", "ombro", "quadril", "peito", "barriga", "costas", "pescoço"
+  ],
+  "Objetos da casa": [
+    "sofá", "cadeira", "mesa", "cama", "espelho", "geladeira", "fogão", "televisão", "micro-ondas", "guarda-roupa",
+    "tapete", "travesseiro", "lençol", "toalha", "abajur", "chuveiro", "pia", "ventilador", "escova", "cortina"
+  ],
+  "Comidas": [
+    "arroz", "feijão", "macarrão", "carne", "peixe", "frango", "salada", "sopa", "batata", "ovo",
+    "queijo", "pão", "pizza", "lasanha", "hambúrguer", "churrasco", "cuscuz", "farofa", "brigadeiro", "pudim"
+  ],
+  "Bebidas": [
+    "água", "refrigerante", "suco", "leite", "café", "chá", "vinho", "cerveja", "caipirinha", "vodka",
+    "uísque", "licor", "energético", "smoothie", "milk-shake", "limonada", "achocolatado", "água de coco", "chá gelado", "cappuccino"
+  ],
+  "Elementos da natureza": [
+    "água", "fogo", "terra", "ar", "vento", "chuva", "neve", "trovão", "raio", "relâmpago",
+    "montanha", "rio", "mar", "oceano", "deserto", "floresta", "árvore", "pedra", "vulcão", "nuvem"
+  ],
+  "Instrumentos musicais": [
+    "violão", "guitarra", "baixo", "bateria", "piano", "teclado", "violino", "flauta", "saxofone", "trompete",
+    "trombone", "clarinete", "ukulele", "harpa", "acordeão", "banjo", "cítara", "maracas", "tambor", "oboé"
+  ],
+  "Esportes": [
+    "futebol", "basquete", "vôlei", "tênis", "natação", "boxe", "corrida", "ciclismo", "judô", "karatê",
+    "rugby", "golfe", "surfe", "skate", "esgrima", "ginástica", "beisebol", "handebol", "futsal", "xadrez"
+  ],
+  "Ferramentas": [
+    "martelo", "chave de fenda", "chave inglesa", "serrote", "furadeira", "alicate", "trena", "serra elétrica", "lixadeira", "parafusadeira",
+    "formão", "esquadro", "nivelador", "torno", "pé de cabra", "arco de serra", "grampo", "pincel", "espátula", "marreta"
+  ],
+  "Roupas": [
+    "camisa", "calça", "vestido", "saia", "jaqueta", "blusa", "shorts", "meia", "sapato", "tênis",
+    "moletom", "casaco", "cachecol", "luva", "chapéu", "boné", "cinto", "blazer", "pijama", "maiô"
+  ],
+  "Transporte": [
+    "carro", "moto", "bicicleta", "ônibus", "caminhão", "trem", "avião", "navio", "metrô", "barco",
+    "patinete", "trator", "jangada", "helicóptero", "balão", "lancha", "charrete", "carroça", "caminhonete", "jet ski"
+  ],
+  "Tecnologia": [
+    "computador", "celular", "tablet", "televisão", "notebook", "impressora", "scanner", "roteador", "monitor", "mouse",
+    "teclado", "câmera", "webcam", "microfone", "console", "fone", "modem", "projetor", "pen drive", "drone"
+  ],
+  "Filmes famosos": [
+    "titanic", "avatar", "inception", "matrix", "gladiador", "interestelar", "jurassic park", "star wars", "harry potter", "vingadores",
+    "homem de ferro", "batman", "joker", "frozen", "toy story", "rei leão", "homem-aranha", "pantera negra", "top gun", "shrek"
+  ],
+  "Personagens de desenhos": [
+    "mickey", "minnie", "pateta", "donald", "pernalonga", "piu-piu", "pica-pau", "tom", "jerry", "scooby-doo",
+    "fred", "velma", "daphne", "bob esponja", "patrick", "lula molusco", "ash", "pikachu", "goku", "vegeta"
+  ],
+  "Marcas famosas": [
+    "coca-cola", "nike", "adidas", "apple", "samsung", "sony", "microsoft", "google", "amazon", "netflix",
+    "honda", "toyota", "bmw", "nestlé", "pepsi", "intel", "nvidia", "puma", "uber", "spotify"
+  ],
+  "Planetas do sistema solar": [
+    "mercúrio", "vênus", "terra", "marte", "júpiter", "saturno", "urano", "netuno", "plutão", "lua",
+    "sol", "asteroide", "cometa", "meteoro", "cinturão de asteroides", "satélite", "exoplaneta", "planeta anão", "orbita", "galáxia"
+  ],
+  "Coisas da escola": [
+    "caderno", "lápis", "caneta", "borracha", "mochila", "quadro", "giz", "régua", "livro", "apostila",
+    "tesoura", "cola", "estojo", "papel", "grampeador", "marcador", "apagador", "calculadora", "compasso", "clipe"
+  ],
+  "Lugares na cidade": [
+    "praça", "igreja", "mercado", "padaria", "farmácia", "escola", "hospital", "delegacia", "biblioteca", "cinema",
+    "shopping", "parque", "restaurante", "lanchonete", "posto", "hotel", "aeroporto", "estação", "banco", "zoológico"
+  ],
+  "Sentimentos": [
+    "alegria", "tristeza", "raiva", "medo", "vergonha", "orgulho", "carinho", "ciúmes", "esperança", "inveja",
+    "amor", "ódio", "ansiedade", "calma", "frustração", "surpresa", "confiança", "solidão", "compaixão", "paz"
+  ],
+  "Comidas de festa": [
+    "brigadeiro", "cachorro-quente", "bolo", "salgadinho", "coxinha", "pastel", "refrigerante", "pipoca", "docinho", "beijinho",
+    "quibe", "empadinha", "torta", "pizza", "esfiha", "sorvete", "gelatina", "amendoim", "canudinho", "churros"
+  ],
+  "Coisas de banheiro": [
+    "sabonete", "escova de dentes", "pasta de dente", "toalha", "xampu", "condicionador", "espelho", "chuveiro", "pente", "fio dental",
+    "desodorante", "papel higiênico", "cotonete", "creme", "esponja", "ralo", "torneira", "box", "vaso", "lixeira"
+  ],
+  "Coisas do verão": [
+    "praia", "sol", "calor", "sunga", "biquíni", "óculos escuros", "protetor solar", "piscina", "sorvete", "água de coco",
+    "chapéu", "ventilador", "chuveirão", "bronzeador", "raquete", "canga", "sandália", "shorts", "hidratação", "abacaxi"
+  ],
+  "Coisas do inverno": [
+    "frio", "blusa", "cobertor", "meia", "luva", "cachecol", "casaco", "gorro", "chá", "sopa",
+    "aquecedor", "neve", "lareira", "touca", "moletom", "edredom", "jaqueta", "creme hidratante", "pijama", "vento gelado"
+  ],
+  "Tipos de transporte público": [
+    "ônibus", "trem", "metrô", "vlt", "barco", "balsa", "aeronave", "bonde", "van", "ferryboat",
+    "aerobarco", "trólebus", "helicóptero", "teleférico", "metrô de superfície", "minivans", "monotrilho", "moto-táxi", "carro por aplicativo", "transporte escolar"
+  ],
+  "Estilos musicais": [
+    "rock", "pop", "sertanejo", "funk", "rap", "hip hop", "axé", "forró", "pagode", "samba",
+    "brega", "eletrônica", "jazz", "blues", "mpb", "reggae", "clássica", "indie", "metal", "gospel"
+  ],
+  "Coisas do Natal": [
+    "papai noel", "neve", "árvore de natal", "presentes", "luzes", "guirlanda", "panetone", "rabanada", "ceia", "sino",
+    "estrela", "trenó", "renas", "bola de natal", "missa", "cartão", "chaminé", "meias", "natalino", "pisca-pisca"
+  ]
+}

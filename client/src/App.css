@@ -1,0 +1,193 @@
+/* Reset simples */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body, html, #root {
+  height: 100%;
+  background: #f5f7fa;
+  color: #333;
+}
+
+/* Container principal */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+/* Login */
+.login {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 100px;
+}
+
+.input-login {
+  padding: 10px 16px;
+  font-size: 16px;
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  width: 200px;
+  outline-offset: 2px;
+  transition: border-color 0.3s ease;
+  background: white;
+}
+
+.input-login:focus {
+  border-color: #4a90e2;
+}
+
+.btn-login {
+  padding: 10px 20px;
+  background-color: #4a90e2;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.btn-login:hover {
+  background-color: #357ABD;
+}
+
+/* Header */
+.header {
+  text-align: center;
+  margin-bottom: 12px;
+  font-weight: 700;
+  font-size: 1.75rem;
+  color: #2c3e50;
+}
+
+/* Layout principal */
+.main-content {
+  flex: 1;
+  display: flex;
+  gap: 16px;
+  height: 0;
+}
+
+/* Sidebar (placar) */
+.sidebar {
+  flex: 0 0 220px;
+  background: #2c3e50;
+  color: white;
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  height: 100%;
+  overflow-y: auto;
+}
+
+.sidebar h2 {
+  margin-bottom: 12px;
+  font-size: 1.3rem;
+  border-bottom: 2px solid #f1c40f;
+  padding-bottom: 6px;
+}
+
+.sidebar ul {
+  list-style: none;
+}
+
+.sidebar li {
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+/* Chat section */
+.chat-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+/* Mensagens do chat */
+.chat-messages {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+  font-size: 1rem;
+  line-height: 1.5;
+  background: #ecf0f1;
+}
+
+/* Cada mensagem */
+.chat-msg {
+  margin-bottom: 10px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* Palavras acertadas */
+.chat-acerto {
+  background-color: #d4edda;
+  color: #256029;
+  font-weight: 700;
+  border-left: 6px solid #28a745;
+  box-shadow: 0 0 8px rgba(40, 167, 69, 0.4);
+}
+
+/* Sistema */
+.chat-sistema {
+  background-color: #fff3cd;
+  color: #856404;
+  font-weight: 700;
+  border-left: 6px solid #ffc107;
+  box-shadow: 0 0 8px rgba(255, 193, 7, 0.4);
+}
+
+/* Form para enviar mensagem */
+.chat-form {
+  display: flex;
+  border-top: 1px solid #ddd;
+  padding: 12px 16px;
+  background: #f8f9fa;
+}
+
+.chat-input {
+  flex: 1;
+  padding: 12px 16px;
+  font-size: 1rem;
+  border: 2px solid #ccc;
+  border-radius: 30px;
+  outline-offset: 2px;
+  transition: border-color 0.3s ease;
+  background: white;
+}
+
+.chat-input:focus {
+  border-color: #4a90e2;
+}
+
+.chat-btn {
+  margin-left: 12px;
+  background-color: #4a90e2;
+  border: none;
+  border-radius: 30px;
+  color: white;
+  font-weight: 700;
+  padding: 12px 24px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.chat-btn:hover {
+  background-color: #357ABD;
+}
