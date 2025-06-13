@@ -1,0 +1,25 @@
+{
+  "name": "meu-projeto",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "build": "cd client && npm run build",
+    "start": "node server/index.js",
+    "dev": "cd client && npm run dev"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "^4.5.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
+    "vite": "^6.3.5"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}

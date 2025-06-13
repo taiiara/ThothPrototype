@@ -9,19 +9,20 @@ const PORT = process.env.PORT || 3000;
 
 const app = express();
 const server = http.createServer(app);
-const allowedOrigins = [process.env.FRONTEND_URL];
 
 const io = new Server(server, {
   cors: {
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
+    origin: "*", // aceita qualquer origem
     methods: ["GET", "POST"],
   },
+});
+
+// Servir arquivos estáticos manualmente
+app.use(express.static("client/dist"));
+
+// Rota catch-all para SPA
+app.get(/^\/(?!socket\.io).*/, (req, res) => {
+  res.sendFile("client/dist/index.html", { root: "." });
 });
 
 app.use(cors());
@@ -74,13 +75,18 @@ function iniciarRodada(salaId) {
   }, 80000);
 
   sala.timer = setTimeout(() => {
-    const categoriasDisponiveis = Object.keys(categorias).filter((cat) => !sala.jaUsadas.includes(cat));
+    const categoriasDisponiveis = Object.keys(categorias).filter(
+      (cat) => !sala.jaUsadas.includes(cat),
+    );
 
     if (categoriasDisponiveis.length === 0) {
       sala.jaUsadas = [];
     }
 
-    const novaCategoria = categoriasDisponiveis[Math.floor(Math.random() * categoriasDisponiveis.length)];
+    const novaCategoria =
+      categoriasDisponiveis[
+        Math.floor(Math.random() * categoriasDisponiveis.length)
+      ];
 
     sala.categoria = novaCategoria;
     sala.respostas = sortearPalavras(novaCategoria);
@@ -106,7 +112,10 @@ io.on("connection", (socket) => {
   socket.on("entrarSala", ({ salaId, nome }) => {
     if (!salas[salaId]) {
       const categoriasDisponiveis = Object.keys(categorias);
-      const categoriaInicial = categoriasDisponiveis[Math.floor(Math.random() * categoriasDisponiveis.length)];
+      const categoriaInicial =
+        categoriasDisponiveis[
+          Math.floor(Math.random() * categoriasDisponiveis.length)
+        ];
 
       salas[salaId] = {
         usuarios: {},
@@ -132,7 +141,10 @@ io.on("connection", (socket) => {
     });
 
     // Mensagem de tempo restante ao entrar
-    const tempoRestante = Math.max(0, Math.floor((salas[salaId].fimDaRodada - Date.now()) / 1000));
+    const tempoRestante = Math.max(
+      0,
+      Math.floor((salas[salaId].fimDaRodada - Date.now()) / 1000),
+    );
 
     socket.emit("mensagem", {
       nome: "Sistema",
@@ -154,7 +166,9 @@ io.on("connection", (socket) => {
     if (!sala) return;
 
     const chuteNormalizado = chute.trim().toLowerCase();
-    const acertou = sala.respostas.includes(chuteNormalizado) && !sala.acertadas.includes(chuteNormalizado);
+    const acertou =
+      sala.respostas.includes(chuteNormalizado) &&
+      !sala.acertadas.includes(chuteNormalizado);
 
     if (acertou) {
       sala.acertadas.push(chuteNormalizado);
@@ -169,13 +183,18 @@ io.on("connection", (socket) => {
       io.to(salaId).emit("usuariosAtualizados", sala.usuarios);
 
       if (sala.acertadas.length === sala.respostas.length) {
-        const categoriasDisponiveis = Object.keys(categorias).filter((cat) => !sala.jaUsadas.includes(cat));
+        const categoriasDisponiveis = Object.keys(categorias).filter(
+          (cat) => !sala.jaUsadas.includes(cat),
+        );
 
         if (categoriasDisponiveis.length === 0) {
           sala.jaUsadas = [];
         }
 
-        const novaCategoria = categoriasDisponiveis[Math.floor(Math.random() * categoriasDisponiveis.length)];
+        const novaCategoria =
+          categoriasDisponiveis[
+            Math.floor(Math.random() * categoriasDisponiveis.length)
+          ];
 
         sala.categoria = novaCategoria;
         sala.respostas = sortearPalavras(novaCategoria);
@@ -209,7 +228,8 @@ io.on("connection", (socket) => {
       if (salas[salaId].usuarios[socket.id]) {
         delete salas[salaId].usuarios[socket.id];
         io.to(salaId).emit("usuariosAtualizados", salas[salaId].usuarios);
-        if (Object.keys(salas[salaId].usuarios).length === 0) delete salas[salaId];
+        if (Object.keys(salas[salaId].usuarios).length === 0)
+          delete salas[salaId];
       }
     }
   });
@@ -220,5 +240,5 @@ app.get("/categorias", (req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log("Servidor rodando na porta 3000");
+  console.log(`Servidor rodando na porta ${PORT}`);
 });
