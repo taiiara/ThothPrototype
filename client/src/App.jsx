@@ -125,6 +125,10 @@ function App() {
       });
     });
 
+    socket.on("estadoJogo", ({ emJogo }) => {
+      setEmJogo(emJogo);
+    });
+
     socket.on("fimDeJogo", ({ mensagem, ranking }) => {
       setJogoFinalizado(true);
       setEmJogo(false);
@@ -143,10 +147,6 @@ function App() {
         }
         return zerados;
       });
-
-      const textoTop3 = ranking.map((u, i) => `${i + 1}. ${u.nome} — ${u.pontos} ponto${u.pontos === 1 ? "" : "s"}`).join("\n");
-
-      setMensagens((msgs) => [...msgs, { nome: "Sistema", texto: `${mensagem}\n${textoTop3}` }]);
     });
 
     socket.on("salaCheia", () => {
@@ -174,6 +174,7 @@ function App() {
       socket.off("salaCheia");
       socket.off("disconnect");
       socket.off("removidoInatividade");
+      socket.off("estadoJogo");
       clearInterval(timerInterval.current);
       clearTimeout(delayCategoriaTimeout.current);
     };
@@ -258,15 +259,29 @@ function App() {
     resetarEstado();
   }
 
+  function capitalizarTitulo(str) {
+    return str
+      .split(" ")
+      .map((palavra) => palavra.charAt(0).toUpperCase() + palavra.slice(1).toLowerCase())
+      .join(" ");
+  }
+
   return (
     <div className="app-container">
       {!categoria && !jogoFinalizado && (
         <div className="login">
-          <input value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Seu nome" className="input-login" />
-          <input value={sala} onChange={(e) => setSala(e.target.value)} placeholder="Sala" className="input-login" />
-          <button onClick={entrar} className="btn-login" disabled={limiteSala && Object.keys(usuarios).length >= limiteSala}>
-            Entrar
-          </button>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault(); // impede reload
+              entrar(); // executa a função de entrada
+            }}
+          >
+            <input value={nome} onChange={(e) => setNome(e.target.value)} maxLength={15} placeholder="Seu nome" className="input-login" />
+            <input value={sala} onChange={(e) => setSala(e.target.value)} maxLength={15} placeholder="Sala" className="input-login" />
+            <button type="submit" className="btn-login" disabled={limiteSala && Object.keys(usuarios).length >= limiteSala}>
+              Entrar
+            </button>
+          </form>
           {limiteSala && Object.keys(usuarios).length >= limiteSala && <p className="aviso">Sala cheia, escolha outra.</p>}
           <button className="btn-faq" onClick={() => setFaqAberto(true)}>
             FAQ / Como jogar
@@ -297,15 +312,15 @@ function App() {
                   ))}
               </ul>
 
-              <h3>Palavras acertadas:</h3>
-              <ul className="palavras-acertadas">{acertadas.length === 0 ? <p className="text-sm text-gray-500 italic">Nenhuma palavra acertada ainda</p> : acertadas.map((p, i) => <li key={i}>{p}</li>)}</ul>
+              <h3>Palavras Descobertas</h3>
+              <ul className="palavras-acertadas">{acertadas.length === 0 ? <p className="text-sm text-gray-500 italic">Nenhuma palavra descoberta ainda</p> : acertadas.map((p, i) => <li key={i}>{capitalizarTitulo(p)}</li>)}</ul>
             </aside>
 
             <section className="chat-section">
               <div ref={chatRef} className="chat-messages" aria-live="polite" aria-atomic="false">
                 {mensagens.map((msg, i) => (
                   <div key={i} className={`chat-msg ${msg.nome === "Sistema" ? "chat-sistema" : ""} ${msg.acertou ? "chat-acerto" : ""} ${msg.perto ? "chat-perto" : ""}`}>
-                    <strong>{msg.nome}:</strong> {msg.texto} {msg.acertou && "✅"}
+                    <strong>{msg.nome}:</strong> {msg.texto} {msg.acertou}
                     {msg.perto && <em> (Você está perto!)</em>}
                   </div>
                 ))}
@@ -345,7 +360,7 @@ function App() {
               </div>
 
               <div className="ranking-vitorias mt-4">
-                <h3 className="text-lg font-semibold mb-2">🏆 Ranking de Vitórias</h3>
+                <h3 className="text-lg font-semibold mb-2">Ranking de Vitórias</h3>
                 {rankingVitorias.length > 0 ? (
                   <ul className="space-y-1">
                     {rankingVitorias
@@ -377,30 +392,34 @@ function App() {
       )}
 
       {jogoFinalizado && (
-        <div className="fim-jogo-overlay" role="dialog" aria-modal="true" aria-labelledby="fim-jogo-titulo">
-          <h2 id="fim-jogo-titulo">Fim da Rodada!</h2>
+        <div className="fim-jogo-overlay" role="dialog" aria-modal="true" aria-labelledby="fim-jogo-titulo" tabIndex={-1}>
+          <div className="fim-jogo-modal">
+            <h2 id="fim-jogo-titulo">Fim da Rodada!</h2>
 
-          {Array.isArray(top3) && top3.length > 0 && top3.some((j) => j.nome) ? (
-            <ul>
-              {top3.map((jogador, i) => (
-                <li key={jogador.id || i}>
-                  {i + 1}º {jogador.nome} — {jogador.pontos} ponto{jogador.pontos === 1 ? "" : "s"}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p>Sem dados dos vencedores.</p>
-          )}
+            {Array.isArray(top3) && top3.length > 0 && top3.some((j) => j.nome) ? (
+              <div className="podio">
+                {[1, 0, 2].map((posicao, i) => {
+                  const jogador = top3[posicao];
+                  if (!jogador) return null;
+                  return (
+                    <div key={jogador.id || i} className={`podio-posicao pos-${posicao + 1}`}>
+                      <div className="podio-trofeu">{posicao + 1}º</div>
+                      <div className="podio-nome">{jogador.nome}</div>
+                      <div className="podio-pontos">
+                        {jogador.pontos} ponto{jogador.pontos === 1 ? "" : "s"}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <p>Sem dados dos vencedores.</p>
+            )}
 
-          <button
-            onClick={() => {
-              setJogoFinalizado(false);
-              // Não zera nada, apenas fecha o popup
-            }}
-            className="btn-login"
-          >
-            Continuar
-          </button>
+            <button onClick={() => setJogoFinalizado(false)} className="btn-login" autoFocus>
+              Continuar
+            </button>
+          </div>
         </div>
       )}
 
@@ -408,10 +427,27 @@ function App() {
         <div className="faq-modal" role="dialog" aria-modal="true" aria-labelledby="faq-titulo">
           <div className="faq-conteudo">
             <h2 id="faq-titulo">Como jogar Thoth</h2>
-            <p>Em cada rodada, uma categoria será exibida. Você deve tentar adivinhar as palavras relacionadas à categoria enviando chutes no chat.</p>
-            <p>Você tem 90 segundos para cada rodada. O primeiro a acertar uma palavra recebe pontos extras!</p>
-            <p>Se seu chute estiver perto (erro pequeno), receberá uma dica especial.</p>
-            <p>Você pode sair da sala a qualquer momento com o botão "Sair da sala".</p>
+
+            <p>
+              <strong>1. Objetivo:</strong> Adivinhar palavras relacionadas à categoria exibida em cada rodada.
+            </p>
+
+            <p>
+              <strong>2. Tempo:</strong> Cada rodada dura <strong>90 segundos</strong>.
+            </p>
+
+            <p>
+              <strong>3. Como jogar:</strong> Envie suas respostas no chat. O primeiro jogador a acertar cada palavra ganha <strong> um ponto extra</strong>!
+            </p>
+
+            <p>
+              <strong>4. Dicas:</strong> Se seu chute estiver próximo da resposta correta, você receberá um <strong>aviso</strong> para te ajudar.
+            </p>
+
+            <p>
+              <strong>5. Sair da sala:</strong> Use o botão <em>"Sair da sala"</em> a qualquer momento, caso deseje sair do jogo.
+            </p>
+
             <button onClick={() => setFaqAberto(false)} className="btn-faq-close">
               Fechar
             </button>

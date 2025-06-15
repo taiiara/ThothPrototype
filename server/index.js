@@ -10,8 +10,8 @@ const PORT = process.env.PORT || 3000;
 const MAX_JOGADORES = 10;
 const INATIVIDADE_MS = 5 * 60 * 1000; // 5 minutos
 const MAX_RODADAS = 10;
-const DELAY_REINICIO = 10000; // 10 segundos
-const DELAY_PROXIMA_RODADA = 2000; // 2 segundos entre rodadas
+const DELAY_REINICIO = 15000; // 10 segundos
+const DELAY_PROXIMA_RODADA = 5000; // 2 segundos entre rodadas
 const BLOQUEIO_CATEGORIA_MS = 2 * 60 * 60 * 1000; // 2 horas em ms
 const TEMPO_RODADA_MS = 90000; // 90 segundos
 
@@ -39,10 +39,11 @@ function normalizarTexto(texto) {
     .toLowerCase()
     .normalize("NFD") // separa os acentos
     .replace(/[\u0300-\u036f]/g, "") // remove os acentos
-    .replace(/ç/g, "c")
-    .replace(/[^a-z0-9\s]/g, "") // remove caracteres especiais (não letras/números/espaco)
-    .replace(/\s+/g, " ") // reduz espaços múltiplos a 1
-    .trim();
+    .replace(/[ç]/g, "c") // substitui cedilha
+    .replace(/[^a-z0-9\s]/g, "") // remove caracteres especiais
+    .replace(/-/g, " ") // substitui hífens por espaço
+    .replace(/\s+/g, " ") // reduz múltiplos espaços
+    .trim(); // remove espaços nas pontas
 }
 
 function sortearPalavras(categoria) {
@@ -83,10 +84,8 @@ function enviarPlacarFinal(salaId) {
   const ranking = Object.values(sala.usuarios)
     .sort((a, b) => b.pontos - a.pontos)
     .slice(0, 3);
-  io.to(salaId).emit("fimDeJogo", {
-    mensagem: "Fim de jogo! Ganhadores:",
-    ranking,
-  });
+
+  io.to(salaId).emit("fimDeJogo", { ranking });
 }
 
 function enviarRankingVitorias(salaId) {
@@ -110,7 +109,7 @@ function enviarRankingVitorias(salaId) {
 function reiniciarPartida(salaId) {
   const sala = salas[salaId];
   if (!sala) return;
-  sala.rodada = 1;
+  sala.rodada = 0;
   sala.acertadas = [];
   sala.respostas = [];
   sala.categoria = null;
@@ -120,6 +119,8 @@ function reiniciarPartida(salaId) {
     texto: "Reiniciando partida em breve...",
     acertou: false,
   });
+  io.to(salaId).emit("estadoJogo", { emJogo: true });
+  sala.aceitandoAcertos = false;
   setTimeout(() => iniciarNovaRodada(salaId), DELAY_REINICIO);
 }
 
@@ -136,6 +137,30 @@ function definirVencedorSeNecessario(sala) {
 function iniciarNovaRodada(salaId) {
   const sala = salas[salaId];
   if (!sala) return;
+
+  sala.rodada++;
+
+  if (sala.rodada > MAX_RODADAS) {
+    enviarPlacarFinal(salaId);
+    io.to(salaId).emit("mensagem", {
+      nome: "Sistema",
+      texto: "Partida finalizada! Iniciando nova partida...",
+      tipo: "info",
+      acertou: false,
+    });
+
+    definirVencedorSeNecessario(sala);
+    enviarRankingVitorias(salaId);
+
+    io.to(salaId).emit("estadoJogo", { emJogo: true });
+    sala.aceitandoAcertos = false;
+
+    setTimeout(() => {
+      reiniciarPartida(salaId);
+    }, DELAY_REINICIO);
+
+    return;
+  }
 
   sala.aceitandoAcertos = true;
   sala.vencedorDefinido = false;
@@ -170,15 +195,15 @@ function iniciarNovaRodada(salaId) {
 
   io.to(salaId).emit("mensagem", {
     nome: "Sistema",
-    texto: `Nova Rodada! Categoria: ${sala.categoria}.`,
+    texto: `Rodada ${sala.rodada}/10 começou!`,
     acertou: false,
   });
   io.to(salaId).emit("mensagem", {
     nome: "Sistema",
-    texto: `Categoria: ${sala.categoria}.`,
+    texto: `Nova categoria: ${sala.categoria}.`,
     acertou: false,
   });
-   io.to(salaId).emit("mensagem", {
+  io.to(salaId).emit("mensagem", {
     nome: "Sistema",
     texto: `Você tem ${TEMPO_RODADA_MS / 1000} segundos para acertar as palavras.`,
     acertou: false,
@@ -205,39 +230,18 @@ function iniciarNovaRodada(salaId) {
   }, TEMPO_RODADA_MS - 10000);
 
   sala.timer = setTimeout(() => {
-    sala.rodada++;
+    io.to(salaId).emit("mensagem", {
+      nome: "Sistema",
+      texto: "Tempo esgotado! Preparando nova rodada...",
+      tipo: "info",
+      acertou: false,
+    });
 
-    if (sala.rodada > MAX_RODADAS) {
-      enviarPlacarFinal(salaId);
-      io.to(salaId).emit("mensagem", {
-        nome: "Sistema",
-        texto: "Rodada finalizada! Iniciando nova partida em 10 segundos...",
-        tipo: "info",
-        acertou: false,
-      });
+    sala.aceitandoAcertos = false;
 
-      definirVencedorSeNecessario(sala);
-      enviarRankingVitorias(salaId);
-
-      setTimeout(() => {
-        reiniciarPartida(salaId);
-      }, DELAY_REINICIO);
-    } else {
-      setTimeout(() => {
-        io.to(salaId).emit("mensagem", {
-          nome: "Sistema",
-          texto: "O tempo esgotado! Preparando nova rodada...",
-          tipo: "info",
-          acertou: false,
-        });
-
-        sala.aceitandoAcertos = false;
-      }, 100);
-
-      setTimeout(() => {
-        iniciarNovaRodada(salaId);
-      }, DELAY_PROXIMA_RODADA);
-    }
+    setTimeout(() => {
+      iniciarNovaRodada(salaId);
+    }, DELAY_PROXIMA_RODADA);
   }, TEMPO_RODADA_MS);
 }
 
@@ -313,11 +317,11 @@ io.on("connection", (socket) => {
         metadeTempoAviso: null,
         dezSegundosAviso: null,
         fimDaRodada: null,
-        rodada: 1,
+        rodada: 0,
       };
       iniciarNovaRodada(salaId);
     }
-    
+
     const sala = salas[salaId];
     if (Object.keys(sala.usuarios).length >= MAX_JOGADORES) {
       socket.emit("mensagem", {
@@ -338,7 +342,7 @@ io.on("connection", (socket) => {
     const tempoRestante = Math.max(0, Math.floor((sala.fimDaRodada - Date.now()) / 1000));
     socket.emit("mensagem", {
       nome: "Sistema",
-      texto: `Rodada em andamento!`,
+      texto: `Rodada ${sala.rodada}/10 em andamento!`,
       acertou: false,
     });
     socket.emit("mensagem", {
@@ -391,10 +395,14 @@ io.on("connection", (socket) => {
           if (sala.rodada > MAX_RODADAS) {
             io.to(salaId).emit("mensagem", {
               nome: "Sistema",
-              texto: "Rodada finalizada! Iniciando nova partida em 10 segundos...",
+              texto: "Partida finalizada! Iniciando nova partida...",
               tipo: "info",
               acertou: false,
             });
+
+            io.to(salaId).emit("estadoJogo", { emJogo: true });
+            sala.aceitandoAcertos = false;
+
             setTimeout(() => {
               reiniciarPartida(salaId);
             }, DELAY_REINICIO);
@@ -402,11 +410,19 @@ io.on("connection", (socket) => {
             setTimeout(() => {
               io.to(salaId).emit("mensagem", {
                 nome: "Sistema",
-                texto: "Todas as respostas foram acertadas! Preparando nova rodada...",
+                texto: "Todas as respostas foram descobertas!",
+                tipo: "info",
+                acertou: false,
+              });
+              io.to(salaId).emit("mensagem", {
+                nome: "Sistema",
+                texto: "Preparando nova rodada...",
                 tipo: "info",
                 acertou: false,
               });
             }, 100);
+
+            sala.aceitandoAcertos = false;
 
             setTimeout(() => {
               iniciarNovaRodada(salaId);
