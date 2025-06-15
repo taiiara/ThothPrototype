@@ -25,33 +25,29 @@ function App() {
   const [jogoFinalizado, setJogoFinalizado] = useState(false);
   const [limiteSala, setLimiteSala] = useState(null);
   const [faqAberto, setFaqAberto] = useState(false);
+  const [rankingVitorias, setRankingVitorias] = useState([]);
+  const [top3, setTop3] = useState([]);
 
   const chatRef = useRef(null);
   const timerInterval = useRef(null);
   const delayCategoriaTimeout = useRef(null);
 
-  // Função para tocar sons com segurança (tratando permissões e erros)
   function tocarSom(audio) {
     if (!audio) return;
     audio.pause();
     audio.currentTime = 0;
-    audio.play().catch(() => {
-      // erro comum: autoplay bloqueado, ignorar
-    });
+    audio.play().catch(() => {});
   }
 
   useEffect(() => {
     const ultimaMsg = mensagens[mensagens.length - 1];
     if (ultimaMsg?.nome === "Sistema" && ultimaMsg.texto.includes("Rodada") && ultimaMsg.texto.includes("iniciada")) {
-      setTempoRestante(90); // ou 60 se mudar depois
+      setTempoRestante(90);
     }
   }, [mensagens]);
 
   useEffect(() => {
-    // Escuta eventos do socket
-    socket.on("connect", () => {
-      // Conectou
-    });
+    socket.on("connect", () => {});
 
     socket.on("dadosSala", (dados) => {
       setLimiteSala(dados.limiteSala || null);
@@ -60,7 +56,6 @@ function App() {
       setRodada(dados.rodada || 1);
       setEmJogo(true);
       setTempoRespostaJogadores({});
-      // toca som nova rodada
       tocarSom(somNovaRodada);
     });
 
@@ -69,11 +64,19 @@ function App() {
     });
 
     socket.on("usuariosAtualizados", (atualizados) => {
-      // Ordena por pontos desc
+      // atualiza também as vitórias no usuário, se ranking estiver setado
       const sorted = Object.entries(atualizados)
-        .sort((a, b) => b[1].pontos - a[1].pontos)
-        .reduce((acc, [id, u]) => {
-          acc[id] = u;
+        .map(([id, u]) => {
+          // procura vitórias no ranking pelo nome do usuário
+          const rankingEntry = rankingVitorias.find((r) => r.nome === u.nome);
+          return {
+            ...u,
+            vitorias: rankingEntry ? rankingEntry.vitorias : 0,
+          };
+        })
+        .sort((a, b) => b.pontos - a.pontos)
+        .reduce((acc, u) => {
+          acc[u.nome] = u;
           return acc;
         }, {});
       setUsuarios(sorted);
@@ -89,6 +92,12 @@ function App() {
           ...t,
           [msg.nome]: msg.tempoResposta,
         }));
+
+        // Aqui adiciona a palavra ao array acertadas, mantendo maiúsculas/minúsculas
+        setAcertadas((prev) => {
+          if (prev.includes(msg.texto)) return prev; // evita duplicatas
+          return [...prev, msg.texto];
+        });
       } else if (msg.perto && msg.destinatario === nome) {
         novaMsg.texto = `"${msg.texto}" do usuário ${msg.nome} está perto`;
         tocarSom(somErroProximo);
@@ -97,13 +106,47 @@ function App() {
       setMensagens((msgs) => [...msgs, novaMsg]);
     });
 
-    socket.on("fimJogo", (top3) => {
+    // Novo evento para atualizar ranking de vitórias
+    socket.on("atualizarRanking", (ranking) => {
+      setRankingVitorias(ranking);
+
+      // Atualiza usuários com as vitórias para exibir
+      setUsuarios((prevUsuarios) => {
+        const atualizados = { ...prevUsuarios };
+        ranking.forEach(({ nome, vitorias }) => {
+          // Atualiza só se usuário existir
+          for (const id in atualizados) {
+            if (atualizados[id].nome === nome) {
+              atualizados[id].vitorias = vitorias;
+            }
+          }
+        });
+        return atualizados;
+      });
+    });
+
+    socket.on("fimDeJogo", ({ mensagem, ranking }) => {
       setJogoFinalizado(true);
       setEmJogo(false);
+      setTop3(ranking); // <-- aqui está o pulo do gato
       tocarSom(somFimJogo);
 
-      const textoTop3 = top3.map((u, i) => `${i + 1}º ${u.nome} - ${u.pontos} pts`).join("\n");
-      setMensagens((msgs) => [...msgs, { nome: "Sistema", texto: `Fim de jogo! Top 3:\n${textoTop3}` }]);
+      setAcertadas([]); // limpa as palavras acertadas
+
+      setUsuarios((prevUsuarios) => {
+        const zerados = {};
+        for (const id in prevUsuarios) {
+          zerados[id] = {
+            ...prevUsuarios[id],
+            pontos: 0, // zera pontos
+          };
+        }
+        return zerados;
+      });
+
+      const textoTop3 = ranking.map((u, i) => `${i + 1}. ${u.nome} — ${u.pontos} ponto${u.pontos === 1 ? "" : "s"}`).join("\n");
+
+      setMensagens((msgs) => [...msgs, { nome: "Sistema", texto: `${mensagem}\n${textoTop3}` }]);
     });
 
     socket.on("salaCheia", () => {
@@ -120,54 +163,63 @@ function App() {
     });
 
     return () => {
-      // Cleanup eventos e timers
       socket.off("connect");
       socket.off("dadosSala");
       socket.off("atualizarAcertadas");
       socket.off("usuariosAtualizados");
       socket.off("mensagem");
+      socket.off("atualizarRanking");
+      socket.off("fimDeJogo");
       socket.off("fimJogo");
       socket.off("salaCheia");
       socket.off("disconnect");
       socket.off("removidoInatividade");
-
       clearInterval(timerInterval.current);
       clearTimeout(delayCategoriaTimeout.current);
     };
-  }, [nome]);
+  }, [nome, rankingVitorias]);
 
   useEffect(() => {
-    // Controla timer de contagem regressiva
     if (!emJogo) {
       clearInterval(timerInterval.current);
       setTempoRestante(0);
       return;
     }
 
-    // Tenta extrair tempo restante da última mensagem do sistema
-    const ultimoMsg = mensagens[mensagens.length - 1];
-    if (ultimoMsg && ultimoMsg.nome === "Sistema" && /Você tem \d+ segundos/.test(ultimoMsg.texto)) {
-      const match = ultimoMsg.texto.match(/Você tem (\d+)\s+segundos/);
-      if (match) {
-        let segs = parseInt(match[1], 10);
-        setTempoRestante(segs);
+    const intervaloVerificacao = setInterval(() => {
+      const ultimaMensagem = mensagens[mensagens.length - 1];
 
-        clearInterval(timerInterval.current);
-        timerInterval.current = setInterval(() => {
-          setTempoRestante((t) => {
-            if (t <= 1) {
-              clearInterval(timerInterval.current);
-              return 0;
-            }
-            return t - 1;
-          });
-        }, 1000);
+      if (ultimaMensagem?.nome === "Sistema" && /(\d+)\s*segundos/i.test(ultimaMensagem.texto)) {
+        const match = ultimaMensagem.texto.match(/(\d+)\s*segundos/i);
+        if (match) {
+          const segundos = parseInt(match[1], 10);
+
+          setTempoRestante(segundos);
+
+          clearInterval(timerInterval.current);
+          clearInterval(intervaloVerificacao); // para o polling
+
+          timerInterval.current = setInterval(() => {
+            setTempoRestante((tempo) => {
+              if (tempo <= 1) {
+                clearInterval(timerInterval.current);
+                return 0;
+              }
+              return tempo - 1;
+            });
+          }, 1000);
+        }
+      } else {
+        console.log("Última mensagem não contém segundos, aguardando...");
       }
-    }
+    }, 300);
+
+    return () => {
+      clearInterval(intervaloVerificacao);
+    };
   }, [mensagens, emJogo]);
 
   useEffect(() => {
-    // Scroll automático para o final do chat
     if (chatRef.current) {
       chatRef.current.scrollTop = chatRef.current.scrollHeight;
     }
@@ -235,21 +287,18 @@ function App() {
             <aside className="sidebar esquerda">
               <h2>Jogadores</h2>
               <ul>
-                {Object.entries(usuarios).map(([id, u]) => (
-                  <li key={id} className={u.bonusPrimeiro ? "destaque-primeiro" : ""} title={`Tempo para acertar: ${tempoRespostaJogadores[u.nome] != null ? tempoRespostaJogadores[u.nome] + "s" : "N/A"}`}>
-                    {u.nome}: {u.pontos} pts {u.bonusPrimeiro && <span className="badge">1º!</span>}
-                    {tempoRespostaJogadores[u.nome] != null && <small> ({tempoRespostaJogadores[u.nome]}s)</small>}
-                  </li>
-                ))}
+                {Object.entries(usuarios)
+                  .sort(([, a], [, b]) => b.pontos - a.pontos)
+                  .map(([id, u]) => (
+                    <li key={id} className={u.bonusPrimeiro ? "destaque-primeiro" : ""} title={`Tempo para acertar: ${tempoRespostaJogadores[u.nome] != null ? tempoRespostaJogadores[u.nome] + "s" : "N/A"}`}>
+                      {u.nome}: {u.pontos} pts {u.bonusPrimeiro && <span className="badge">1º!</span>}
+                      {tempoRespostaJogadores[u.nome] != null && <small> ({tempoRespostaJogadores[u.nome]}s)</small>}
+                    </li>
+                  ))}
               </ul>
 
               <h3>Palavras acertadas:</h3>
-              <ul className="palavras-acertadas">
-                {acertadas.length === 0 && <li>Nenhuma palavra acertada ainda</li>}
-                {acertadas.map((p, i) => (
-                  <li key={i}>{p}</li>
-                ))}
-              </ul>
+              <ul className="palavras-acertadas">{acertadas.length === 0 ? <p className="text-sm text-gray-500 italic">Nenhuma palavra acertada ainda</p> : acertadas.map((p, i) => <li key={i}>{p}</li>)}</ul>
             </aside>
 
             <section className="chat-section">
@@ -295,6 +344,24 @@ function App() {
                 </div>
               </div>
 
+              <div className="ranking-vitorias mt-4">
+                <h3 className="text-lg font-semibold mb-2">🏆 Ranking de Vitórias</h3>
+                {rankingVitorias.length > 0 ? (
+                  <ul className="space-y-1">
+                    {rankingVitorias
+                      .slice()
+                      .sort((a, b) => b.vitorias - a.vitorias)
+                      .map((jogador, i) => (
+                        <li key={jogador.id}>
+                          {i + 1}º {jogador.nome} — {jogador.vitorias} vitória{jogador.vitorias !== 1 ? "s" : ""}
+                        </li>
+                      ))}
+                  </ul>
+                ) : (
+                  <p className="text-sm text-gray-500">Aguardando fim da partida</p>
+                )}
+              </div>
+
               {/* Rodapé da sidebar com botões FAQ e Sair arredondados */}
               <div className="sidebar-footer">
                 <button onClick={() => setFaqAberto(true)} className="btn-faq" title="FAQ / Como jogar">
@@ -311,21 +378,28 @@ function App() {
 
       {jogoFinalizado && (
         <div className="fim-jogo-overlay" role="dialog" aria-modal="true" aria-labelledby="fim-jogo-titulo">
-          <h2 id="fim-jogo-titulo">Fim de jogo!</h2>
+          <h2 id="fim-jogo-titulo">Fim da Rodada!</h2>
+
+          {Array.isArray(top3) && top3.length > 0 && top3.some((j) => j.nome) ? (
+            <ul>
+              {top3.map((jogador, i) => (
+                <li key={jogador.id || i}>
+                  {i + 1}º {jogador.nome} — {jogador.pontos} ponto{jogador.pontos === 1 ? "" : "s"}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>Sem dados dos vencedores.</p>
+          )}
+
           <button
             onClick={() => {
               setJogoFinalizado(false);
-              setCategoria("");
-              setAcertadas([]);
-              setRodada(1);
-              setUsuarios({});
-              setMensagens([]);
-              setEmJogo(false);
-              setTempoRespostaJogadores({});
+              // Não zera nada, apenas fecha o popup
             }}
             className="btn-login"
           >
-            Voltar para o início
+            Continuar
           </button>
         </div>
       )}
