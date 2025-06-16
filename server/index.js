@@ -392,6 +392,13 @@ io.on("connection", (socket) => {
         io.to(salaId).emit("usuariosAtualizados", sala.usuarios);
 
         if (sala.acertadas.length === 5) {
+          // Impede que avisos futuros sejam enviados
+          clearTimeout(sala.timer);
+          clearTimeout(sala.metadeTempoAviso);
+          clearTimeout(sala.dezSegundosAviso);
+
+          sala.aceitandoAcertos = false;
+
           if (sala.rodada > MAX_RODADAS) {
             io.to(salaId).emit("mensagem", {
               nome: "Sistema",
@@ -421,8 +428,6 @@ io.on("connection", (socket) => {
                 acertou: false,
               });
             }, 100);
-
-            sala.aceitandoAcertos = false;
 
             setTimeout(() => {
               iniciarNovaRodada(salaId);
