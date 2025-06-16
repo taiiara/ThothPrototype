@@ -601,7 +601,8 @@ html,
 }
 
 .ranking-vitorias p {
-  color: #a0aec0; /* cinza claro */
+  color: #6b7280; /* cinza */
   font-style: italic;
-  font-size: 0.9rem;
+  font-size: 0.875rem; /* 14px */
+  margin: 0; /* Remove espaçamentos padrão */
 }
