@@ -42,6 +42,7 @@ function normalizarTexto(texto) {
     .replace(/[ç]/g, "c") // substitui cedilha
     .replace(/[^a-z0-9\s]/g, "") // remove caracteres especiais
     .replace(/-/g, " ") // substitui hífens por espaço
+    .replace(/'/g, " ") // substitui apóstrofos por espaço
     .replace(/\s+/g, " ") // reduz múltiplos espaços
     .trim(); // remove espaços nas pontas
 }
